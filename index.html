@@ -77,18 +77,13 @@
     // 密文解密辅助函数（反向 Base64 解码）
     const D = s => {
   try {
-    // 去掉末尾补位符，再反转 Base64 内容
-    let normal = s.replace(/=+$/, '').split('').reverse().join('');
-
-    // 重新补齐 Base64 所需的 =
-    normal += '='.repeat((4 - normal.length % 4) % 4);
-
-    return atob(normal);
+    return atob(s).split('').reverse().join('');
   } catch (error) {
     console.error('节点地址解码失败：', error);
     return '';
   }
 };
+
 
 
     // 🟢 页面全部中文标签与提示全密文打包（源码无明文）
@@ -102,7 +97,7 @@
         desc: '推荐线路 · 智能优化加速',
         tag: '首选',
         tagClass: 'main',
-        url: D('dmVkLnNlZ2FwLmloemlkcHEvLzpzcHR0aA==')
+        url: D('dmVkLnNlZ2FwLnBzb2FwaXEvLzpzcHR0aA==')
       },
       // 2. 备用节点 (qqwwq2.pages.dev)
       {
