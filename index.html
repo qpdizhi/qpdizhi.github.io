@@ -133,7 +133,18 @@
     ];
 
     (function renderApp() {
-      const cfg = JSON.parse(decodeURIComponent(escape(atob(RAW_PAYLOAD))));
+      const cfg = {
+  name: '系统监控 · 节点网关',
+  sub: '欢迎使用节点服务',
+  status: '运行正常',
+  sec1: '节点列表',
+  sec2: '联系支持',
+  emailTitle: '邮箱找回',
+  subEmail: 'qpdizhi@atomicmail.io',
+  copyTag: '复制邮箱',
+  notes: '如有问题，请联系管理员'
+};
+
       document.title = cfg.name;
       const today = new Intl.DateTimeFormat('zh-CN', { month:'long', day:'numeric' }).format(new Date());
 
