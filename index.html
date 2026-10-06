@@ -80,7 +80,7 @@
     };
 
     // 🟢 页面全部中文标签与提示全密文打包（源码无明文）
-    const RAW_PAYLOAD = "eyJuYW1lIjoi5rCU5rOh572R57ucIOKAキIOaPt+WFpeWvhumSpeS4juacjeWKoeWvvOiIqiIsInN1YiI6IuacjeWKoeWPr+eUqOaApyDwn5qoIOWkmuiKgueCueaOpeWFpeiwg+W6piIsInN0YXR1cyI6IuWFqOe6v+e9kee7nOacjeWKoeato+W4uCIsInNlYzEiOiLkuLvnur/mjqXlhaXoiYjngrkxIiwic2VjMiI6IuWfny9hLzLnp6vmuoDkuaDms7DpgILli7kiLCJlbWFpbFRpdGxlIjoi5Z+fL2Ev5LiT55So6YKu566xIiwic3ViRW1haWwiOiJxcGRpemhpQGF0b21pY21haWwuaW8iLCJjb3B5VGFnIjoi54K55Ye75aSN5Yi2Iiwibm90ZXMiOiLmj5DnpLrvvJrlu7rorq7kvb/nlKggQ3RybCArIEQg5bCG5pys6aG16Z2i5Yqg5YWl5Lmm562+44CCIn0=";
+    const RAW_PAYLOAD = "eyJuYW1lIjoi5rCU5rOh572R57ucIOKAIOaPt+WFpeWvhumSpeS4juacjeWKoeWvvOiIqiIsInN1YiI6IuacjeWKoeWPr+eUqOaApyDwn5qoIOWkmuiKgueCueaOpeWFpeiwg+W6piIsInN0YXR1cyI6IuWFqOe6v+e9kee7nOacjeWKoeato+W4uCIsInNlYzEiOiLkuLvnur/mjqXlhaXoiYjngrkxIiwic2VjMiI6IuWfny9hLzLnp6vmuoDkuaDms7DpgILli7kiLCJlbWFpbFRpdGxlIjoi5Z+fL2Ev5LiT55So6YKu566xIiwic3ViRW1haWwiOiJxcGRpemhpQGF0b21pY21haWwuaW8iLCJjb3B5VGFnIjoi54K55Ye75aSN5Yi2Iiwibm90ZXMiOiLmj5DnpLrvvJrlu7rorq7kvb/nlKggQ3RybCArIEQg5bCG5pys6aG16Z2i5Yqg5YWl5Lmm562+44CCIn0=";
 
     // 🟢 节点数据配置（当前开启 Node 01 & 02，备用节点均预设在注释中）
     const NODES = [
@@ -133,7 +133,7 @@
     ];
 
     (function renderApp() {
-      const cfg = JSON.parse(atob(RAW_PAYLOAD));
+      const cfg = JSON.parse(decodeURIComponent(escape(atob(RAW_PAYLOAD))));
       document.title = cfg.name;
       const today = new Intl.DateTimeFormat('zh-CN', { month:'long', day:'numeric' }).format(new Date());
 
