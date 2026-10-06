@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>System Monitor · Node Gateway</title>
+  <title>气泡网络 · 接入状态与服务导航</title>
   <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="Bubble Network · 服务可用性状态与节点接入分发中心" />
+  <meta name="robots" content="noindex, noarchive, nofollow" />
   <style>
     :root {
       --bg-start: #f0f9ff;
@@ -12,32 +14,41 @@
       --bg-accent: rgba(14, 165, 233, 0.12);
       --text: #0f172a;
       --muted: #64748b;
-      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-bg: rgba(255, 255, 255, 0.88);
       --card-border: rgba(148, 163, 184, 0.25);
       --primary: #0ea5e9;
       --radius: 18px;
       --shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
       --green: #10b981;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --notice-bg: rgba(14, 165, 233, 0.08);
+      --notice-text: #0369a1;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg-start: #0c1a2b;
+        --bg-start: #080d1a;
         --bg-end: #0f172a;
-        --bg-accent: rgba(14, 165, 233, 0.16);
+        --bg-accent: rgba(14, 165, 233, 0.14);
         --text: #f1f5f9;
         --muted: #94a3b8;
-        --card-bg: rgba(15, 23, 42, 0.75);
-        --card-border: rgba(148, 163, 184, 0.2);
+        --card-bg: rgba(15, 23, 42, 0.78);
+        --card-border: rgba(148, 163, 184, 0.18);
         --primary: #38bdf8;
-        --shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+        --shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
+        --notice-bg: rgba(14, 165, 233, 0.16);
+        --notice-text: #bae6fd;
       }
     }
     *, *::before, *::after { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; }
     body {
-      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, PingFang SC, Microsoft YaHei, sans-serif;
       line-height: 1.6; color: var(--text);
-      background: radial-gradient(1200px 600px at 100% -50%, var(--bg-accent), transparent 60%), linear-gradient(135deg, var(--bg-start), var(--bg-end));
+      background:
+        radial-gradient(1200px 600px at 100% -50%, var(--bg-accent), transparent 60%),
+        radial-gradient(900px 500px at -10% 120%, var(--bg-accent), transparent 60%),
+        linear-gradient(135deg, var(--bg-start), var(--bg-end));
       background-attachment: fixed;
     }
     a { color: inherit; text-decoration: none; cursor: pointer; }
@@ -47,205 +58,394 @@
     .status-bar { display: flex; justify-content: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
     .pill { font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 999px; color: var(--green); border: 1px solid rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.1); display: inline-flex; align-items: center; gap: 6px; }
     .time-box { font-size: 12px; color: var(--muted); padding: 4px 12px; border-radius: 999px; background: rgba(148, 163, 184, 0.1); border: 1px solid var(--card-border); }
-    .section { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: blur(10px); padding: 22px; margin-bottom: 22px; }
-    .section h2 { font-size: 16px; font-weight: 700; margin: 0 0 16px; display: flex; align-items: center; gap: 8px; }
-    .section h2::before { content: ''; display: block; width: 4px; height: 16px; background: var(--primary); border-radius: 2px; }
+    
+    /* 基础卡片框架 */
+    .section { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow); backdrop-filter: saturate(140%) blur(12px); -webkit-backdrop-filter: blur(12px); padding: 24px; margin-bottom: 24px; transition: transform 0.2s ease, border-color 0.2s ease; }
+    .section h2 { font-size: 16.5px; font-weight: 700; margin: 0 0 16px; display: flex; align-items: center; gap: 8px; }
     .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
     @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
-    .link { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; border-radius: 14px; background: rgba(255, 255, 255, 0.5); border: 1px solid var(--card-border); transition: all 0.2s; user-select: none; }
-    @media (prefers-color-scheme: dark) { .link { background: rgba(255, 255, 255, 0.03); } }
-    .link:hover { transform: scale(1.01); border-color: var(--primary); }
-    .name { font-weight: 700; font-size: 15px; color: var(--primary); }
+    
+    .link-base { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; border-radius: 14px; transition: all 0.22s ease; user-select: none; }
+    .link-info { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+    .link-info > div { min-width: 0; flex: 1; }
+    .link-base > div:last-child { flex-shrink: 0; }
     .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .ping { font-size: 11px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+    
+    /* ── 样式 1：业务专线卡片（科技蓝） ── */
+    .sec-video h2::before { content: ''; display: block; width: 4px; height: 16px; background: #0ea5e9; border-radius: 2px; box-shadow: 0 0 8px #0ea5e9; }
+    .link-video { background: rgba(14, 165, 233, 0.04); border: 1px solid rgba(14, 165, 233, 0.18); }
+    .link-video .name { font-weight: 700; font-size: 15px; color: #0284c7; }
+    @media (prefers-color-scheme: dark) {
+      .link-video { background: rgba(14, 165, 233, 0.05); border: 1px solid rgba(56, 189, 248, 0.18); }
+      .link-video .name { color: #38bdf8; }
+    }
+    .link-video:hover { transform: translateY(-2px) scale(1.01); border-color: #38bdf8; background: rgba(14, 165, 233, 0.12); box-shadow: 0 8px 24px rgba(14, 165, 233, 0.15); }
+    
+    /* 图标基础尺寸（保证正方形不拉伸） */
+    .v-icon, .c-icon, .mail-icon {
+      width: 32px;
+      min-width: 32px;
+      max-width: 32px;
+      height: 32px;
+      aspect-ratio: 1 / 1;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .v-icon { background: rgba(14, 165, 233, 0.15); color: #0284c7; font-size: 15px; }
+    @media (prefers-color-scheme: dark) { .v-icon { color: #38bdf8; } }
+
+    /* ── 样式 2：发布页镜像卡片（异构多色系） ── */
+    .sec-mirror { border-top: 2px solid rgba(99, 102, 241, 0.4); }
+    .sec-mirror h2::before { content: ''; display: block; width: 4px; height: 16px; background: linear-gradient(180deg, #f97316, #6366f1); border-radius: 2px; }
+    .link-mirror { background: rgba(255, 255, 255, 0.5); border: 1px solid var(--card-border); }
+    @media (prefers-color-scheme: dark) { .link-mirror { background: rgba(255, 255, 255, 0.02); } }
+    .link-mirror:hover { transform: translateY(-2px) scale(1.01); }
+
+    .cloud-cf:hover { border-color: #f97316; background: rgba(249, 115, 22, 0.08); box-shadow: 0 8px 24px rgba(249, 115, 22, 0.18); }
+    .cloud-cf .name { font-weight: 700; font-size: 15px; color: #ea580c; }
+    @media (prefers-color-scheme: dark) { .cloud-cf .name { color: #fb923c; } }
+    .c-icon-cf { background: rgba(249, 115, 22, 0.15); color: #ea580c; font-size: 13px; font-weight: 800; }
+
+    .cloud-netlify:hover { border-color: #00c7b7; background: rgba(0, 199, 183, 0.08); box-shadow: 0 8px 24px rgba(0, 199, 183, 0.18); }
+    .cloud-netlify .name { font-weight: 700; font-size: 15px; color: #0d9488; }
+    @media (prefers-color-scheme: dark) { .cloud-netlify .name { color: #2dd4bf; } }
+    .c-icon-netlify { background: rgba(0, 199, 183, 0.15); color: #0d9488; font-size: 13px; font-weight: 800; }
+
+    .cloud-github:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.08); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.18); }
+    .cloud-github .name { font-weight: 700; font-size: 15px; color: #4f46e5; }
+    @media (prefers-color-scheme: dark) { .cloud-github .name { color: #818cf8; } }
+    .c-icon-github { background: rgba(99, 102, 241, 0.15); color: #6366f1; font-size: 13px; font-weight: 800; }
+
+    .cloud-bk:hover { border-color: #eab308; background: rgba(234, 179, 8, 0.08); box-shadow: 0 8px 24px rgba(234, 179, 8, 0.18); }
+    .cloud-bk .name { font-weight: 700; font-size: 15px; color: #ca8a04; }
+    @media (prefers-color-scheme: dark) { .cloud-bk .name { color: #facc15; } }
+    .c-icon-bk { background: rgba(234, 179, 8, 0.15); color: #ca8a04; font-size: 13px; font-weight: 800; }
+
+    /* ── 样式 3：邮箱卡片（紫晶） ── */
+    .sec-contact h2::before { content: ''; display: block; width: 4px; height: 16px; background: #8b5cf6; border-radius: 2px; }
+    .link-mail { background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.25); }
+    .link-mail:hover { transform: translateY(-2px); border-color: #8b5cf6; background: rgba(139, 92, 246, 0.1); box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2); }
+    .link-mail .name { font-weight: 700; font-size: 15px; color: #7c3aed; }
+    @media (prefers-color-scheme: dark) { .link-mail .name { color: #a78bfa; } }
+    .mail-icon { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; font-size: 15px; }
+
+    /* ── 测速与标签体系 ── */
+    .ping { font-size: 11px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
     .ping.good { color: var(--green); }
-    .ping.slow { color: #f59e0b; }
-    .tag { font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 6px; color: #fff; display: inline-flex; align-items: center; gap: 4px; }
+    .ping.slow { color: var(--yellow); }
+    .ping.bad  { color: var(--red); }
+    
+    .tag { font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 7px; color: #fff; display: inline-flex; align-items: center; gap: 4px; }
     .dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; animation: pulse 2s infinite; }
+    
     .tag.main { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
-    .tag.bk { background: #64748b; }
-    .tag.mail { background: #8b5cf6; }
-    .tag.tg { background: linear-gradient(135deg, #229ED9, #1e87bb); }
+    .tag.cf { background: linear-gradient(135deg, #f97316, #ea580c); }
+    .tag.netlify { background: linear-gradient(135deg, #00c7b7, #0d9488); }
+    .tag.github { background: linear-gradient(135deg, #6366f1, #4338ca); }
+    .tag.bk { background: linear-gradient(135deg, #ca8a04, #a16207); }
+    .tag.mail { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+    
     @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; } }
     footer { margin-top: 36px; color: var(--muted); font-size: 13px; text-align: center; }
+    footer .notice { margin-top: 14px; font-size: 13px; color: var(--notice-text); background: var(--notice-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px 18px; display: inline-block; }
+
+    /* 📱 移动端排版深度优化（彻底解决小图标拉长与文字截断） */
+    @media (max-width: 639px) {
+      .wrap { padding: 20px 12px 60px; }
+      .section { padding: 16px 12px; margin-bottom: 14px; border-radius: 14px; }
+      .section h2 { font-size: 15px; margin-bottom: 12px; }
+      .link-base { padding: 11px 10px; gap: 8px; border-radius: 12px; }
+      .link-info { gap: 8px; }
+      
+      /* 强制手机端图标为小正方形 */
+      .v-icon, .c-icon, .mail-icon {
+        width: 26px !important;
+        min-width: 26px !important;
+        max-width: 26px !important;
+        height: 26px !important;
+        aspect-ratio: 1 / 1 !important;
+        font-size: 12px !important;
+        border-radius: 7px !important;
+      }
+      .name { font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .sub { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .ping { font-size: 10px; }
+      .tag { font-size: 9.5px; padding: 2px 6px; border-radius: 5px; gap: 3px; }
+      .dot { width: 5px; height: 5px; }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap" id="app"></div>
+  <div class="wrap" id="mainApp">
+    <header>
+      <h1>气泡网络 · 接入状态与服务导航</h1>
+      <p style="color:var(--muted);font-size:14px;margin:0;">服务可用性监控 · 多节点接入调度</p>
+      <div class="status-bar">
+        <span class="pill"><span class="dot" style="background:var(--green)"></span> 全线网络服务正常</span>
+        <time id="today" class="time-box">检测时间：同步中...</time>
+      </div>
+    </header>
+
+    <!-- 板块 1：业务专线 -->
+    <section class="section sec-video">
+      <h2>视频主站 · 极速多线接入</h2>
+      <div class="grid" id="videoNodeList"></div>
+    </section>
+
+    <!-- 板块 2：发布页镜像 -->
+    <section class="section sec-mirror">
+      <h2>官方发布页 · 多个镜像任选</h2>
+      <div class="grid" id="mirrorNodeList"></div>
+    </section>
+
+    <!-- 板块 3：应急联络 -->
+    <section class="section sec-contact">
+      <h2>域名与服务找回</h2>
+      <div class="grid">
+        <div class="link-base link-mail" id="mailBtn" role="button" tabindex="0">
+          <div class="link-info">
+            <div class="mail-icon">✉️</div>
+            <div>
+              <div class="name">域名找回专用邮箱</div>
+              <div class="sub" id="mailText">加载中...</div>
+            </div>
+          </div>
+          <span class="tag mail">点击复制</span>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>© <span id="year"></span> 气泡网络服务保障组. All Rights Reserved.</p>
+      <div class="notice">
+        <strong>提示：</strong>建议使用 <code>Ctrl + D</code> 将本页面页加入浏览器书签。
+      </div>
+    </footer>
+  </div>
 
   <script>
-    // 密文解密辅助函数（反向 Base64 解码）
+    // 🛡️ 1. ASN 机房防御列表
+    const BLOCKED_ASNS = new Set([
+      37963, 45102,
+      45090, 132203,
+      55990,
+      38365, 24424,
+      136907, 133475, 133775,
+      4837,
+      139084,
+      45062, 138997,
+      59077
+    ]);
+
+    // 密文解密辅助工具
     const D = s => {
-  try {
-    return atob(s).split('').reverse().join('');
-  } catch (error) {
-    console.error('节点地址解码失败：', error);
-    return '';
-  }
-};
+      try { return atob(s).split('').reverse().join(''); } catch (_) { return ''; }
+    };
 
+    // 🛡️ 2. 客户端极速 ASN 检测与无感拦截
+    (async function guard() {
+      try {
+        const res = await fetch('https://speed.cloudflare.com/meta', { signal: AbortSignal.timeout(2000) });
+        if (res.ok) {
+          const meta = await res.json();
+          if (meta?.asn && BLOCKED_ASNS.has(Number(meta.asn))) {
+            document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#0f172a;color:#64748b;font-family:sans-serif;">403 Forbidden: Datacenter Access Denied.</div>';
+            return;
+          }
+        }
+      } catch (_) {}
+    })();
 
-
-    // 🟢 页面全部中文标签与提示全密文打包（源码无明文）
-    const RAW_PAYLOAD = "eyJuYW1lIjoi5rCU5rOh572R57ucIOKAIOaPt+WFpeWvhumSpeS4juacjeWKoeWvvOiIqiIsInN1YiI6IuacjeWKoeWPr+eUqOaApyDwn5qoIOWkmuiKgueCueaOpeWFpeiwg+W6piIsInN0YXR1cyI6IuWFqOe6v+e9kee7nOacjeWKoeato+W4uCIsInNlYzEiOiLkuLvnur/mjqXlhaXoiYjngrkxIiwic2VjMiI6IuWfny9hLzLnp6vmuoDkuaDms7DpgILli7kiLCJlbWFpbFRpdGxlIjoi5Z+fL2Ev5LiT55So6YKu566xIiwic3ViRW1haWwiOiJxcGRpemhpQGF0b21pY21haWwuaW8iLCJjb3B5VGFnIjoi54K55Ye75aSN5Yi2Iiwibm90ZXMiOiLmj5DnpLrvvJrlu7rorq7kvb/nlKggQ3RybCArIEQg5bCG5pys6aG16Z2i5Yqg5YWl5Lmm562+44CCIn0=";
-
-    // 🟢 节点数据配置（当前开启 Node 01 & 02，备用节点均预设在注释中）
-    const NODES = [
-      // 1. 主节点 (qqwwq.pages.dev)
+    // 🟢 3. 业务专线节点配置
+    const VIDEO_NODES = [
       {
-        name: '亚太极速专线 (Node 01)',
-        desc: '推荐线路 · 智能优化加速',
+        name: '亚太极速主站 (主域 01)',
+        desc: '推荐首选 · 智能双线加速',
         tag: '首选',
         tagClass: 'main',
-        url: D('dmVkLnNlZ2FwLnBzb2FwaXEvLzpzcHR0aA==')
+        icon: '⚡',
+        cipher: 'Z3JvLnNuZHBkLnBzb2FwaXEvLzpzcHR0aA=='
       },
-      // 2. 备用节点 (qqwwq2.pages.dev)
       {
-        name: '多线容灾节点 (Node 02)',
-        desc: '低延迟线路 · 影音流畅',
+        name: '官方直连主站 (主域 02)',
+        desc: '低延迟通道 · 影音极速秒开',
         tag: '极速',
         tagClass: 'main',
-        url: D('dmVkLnNlZ2FwLjJwc29hcGlxLy86c3B0dGg=')
-      }
-
-      /* 🟢 备用节点 03: Vercel 镜像节点 (部署好 Vercel 之后，删除本段注释符即可点亮) ->
-      ,{
-        name: 'Vercel 国际加速 (Node 03)',
-        desc: '全球边缘 Anycast 容灾镜像',
+        icon: '🚀',
+        cipher: 'dmVkLnNlZ2FwLnBzb2FwaXEvLzpzcHR0aA=='
+      },
+      {
+        name: '多线容灾主站 (备用 01)',
+        desc: '多线解析 · 边缘智能分流',
         tag: '备用',
         tagClass: 'bk',
-        url: D('cHAuMWxlY3Jldi5paHppZHBxLy86c3B0dGg=') // 填入你的 Vercel 域名倒序 Base64
-      }
-      */
-
-      /* 🟢 备用节点 04: Netlify 镜像节点 (部署好 Netlify 之后，删除本段注释符即可点亮) ->
-      ,{
-        name: 'Netlify 智能容灾 (Node 04)',
-        desc: '多线解析接入 · 自动分流',
-        tag: '备用',
-        tagClass: 'bk',
-        url: D('cHAuMWV5ZmlsdGVuLmloemlkcHEvLzpzcHR0aA==') // 填入你的 Netlify 域名倒序 Base64
-      }
-      */
-
-      /* 🟢 备用节点 05: GitHub Pages 镜像节点 (部署好 GitHub 后，删除本段注释符即可点亮) ->
-      ,{
-        name: 'GitHub 静态镜像 (Node 05)',
-        desc: '海外纯净节点 · 最终故障兜底',
+        icon: '🛡️',
+        cipher: 'Z3JvLnNuZHBkLjJwc29hcGlxLy86c3B0dGg='
+      },
+      {
+        name: '海外纯净主站 (备用 02)',
+        desc: '纯净节点 · 故障应急兜底',
         tag: '兜底',
         tagClass: 'bk',
-        url: D('b2kuYnVodGlnLmVtYW5ydW95Ly86c3B0dGg=') // 填入你的 GitHub 域名倒序 Base64
+        icon: '🌐',
+        cipher: 'dmVkLnNlZ2FwLjJwc29hcGlxLy86c3B0dGg='
       }
-      */
     ];
 
-    (function renderApp() {
-      const cfg = {
-  name: '系统监控 · 节点网关',
-  sub: '欢迎使用节点服务',
-  status: '运行正常',
-  sec1: '节点列表',
-  sec2: '联系支持',
-  emailTitle: '邮箱找回',
-  subEmail: 'qpdizhi@atomicmail.io',
-  copyTag: '复制邮箱',
-  notes: '如有问题，请联系管理员'
-};
+    // 🟢 4. 备用发布页镜像配置
+    const MIRROR_NODES = [
+      {
+        name: '官方主发布页',
+        desc: '主发布入口 · 实时更新同步',
+        tag: 'CF 官方',
+        tagClass: 'cf',
+        cloudClass: 'cloud-cf',
+        iconClass: 'c-icon-cf',
+        iconText: 'CF',
+        cipher: 'dmVkLnNlZ2FwLmloemlkcHEvLzpzcHR0aA=='
+      },
+      {
+        name: '智能备用发布 01',
+        desc: '异构跨云镜像 · 全球 Anycast',
+        tag: 'Netlify',
+        tagClass: 'netlify',
+        cloudClass: 'cloud-netlify',
+        iconClass: 'c-icon-netlify',
+        iconText: 'NT',
+        cipher: 'cHBhLnlmaWx0ZW4uaWh6aWRwcS8vOnNwdHRo'
+      },
+      {
+        name: '静态备用发布 02',
+        desc: '微软代码库托管 · 权威保障',
+        tag: 'GitHub',
+        tagClass: 'github',
+        cloudClass: 'cloud-github',
+        iconClass: 'c-icon-github',
+        iconText: 'GH',
+        cipher: 'b2kuYnVodGlnLmloemlkcHEvLzpzcHR0aA=='
+      },
+      {
+        name: '应急备用发布 03',
+        desc: '多线解析备份 · 应急找回通道',
+        tag: 'CF 备用',
+        tagClass: 'bk',
+        cloudClass: 'cloud-bk',
+        iconClass: 'c-icon-bk',
+        iconText: '02',
+        cipher: 'dmVkLnNlZ2FwLjJpaHppZHBxLy86c3B0dGg='
+      }
+    ];
 
-      document.title = cfg.name;
-      const today = new Intl.DateTimeFormat('zh-CN', { month:'long', day:'numeric' }).format(new Date());
+    // ⚡ 核心测速逻辑
+    function runPingTest(url, elementId) {
+      const start = performance.now();
+      let isDone = false;
+      const el = document.getElementById(elementId);
+      const img = new Image();
 
-      const app = document.getElementById('app');
-      app.innerHTML = `
-        <header>
-          <h1>${cfg.name}</h1>
-          <p style="color:var(--muted);font-size:14px;margin:0;">${cfg.sub}</p>
-          <div class="status-bar">
-            <span class="pill"><span class="dot" style="background:var(--green)"></span> ${cfg.status}</span>
-            <span class="time-box">检测时间：${today}</span>
-          </div>
-        </header>
+      const finish = (isError = false) => {
+        if (isDone) return;
+        isDone = true;
+        if (!el) return;
 
-        <section class="section">
-          <h2>${cfg.sec1}</h2>
-          <div class="grid" id="nodeList"></div>
-        </section>
+        const ms = Math.round(performance.now() - start);
+        el.className = 'ping';
 
-        <section class="section">
-          <h2>${cfg.sec2}</h2>
-          <div class="grid" id="contactGrid">
-            <!-- 邮箱找回卡片 -->
-            <div class="link" id="mailBtn" role="button">
-              <div>
-                <div class="name">${cfg.emailTitle}</div>
-                <div class="sub" id="mailText">${cfg.subEmail}</div>
-              </div>
-              <span class="tag mail">${cfg.copyTag}</span>
-            </div>
-
-            <!-- 🟢 Telegram 官方频道直达卡片 (准备好 TG 后，解除以下 8 行注释即可在前端点亮) -->
-            <!--
-            <div class="link" id="tgBtn" role="button">
-              <div>
-                <div class="name">Telegram 官方频道</div>
-                <div class="sub">实时接收最新可用域名推送</div>
-              </div>
-              <span class="tag tg">立即加入</span>
-            </div>
-            -->
-          </div>
-        </section>
-
-        <footer>
-          <p>© ${new Date().getFullYear()} Network Operations Group. All Rights Reserved.</p>
-          <div style="font-size:12.5px;color:var(--muted);margin-top:10px;">${cfg.notes}</div>
-        </footer>
-      `;
-
-      // 渲染节点并执行测速
-      const list = document.getElementById('nodeList');
-      NODES.forEach((n, idx) => {
-        const item = document.createElement('a');
-        item.className = 'link';
-        item.onclick = () => window.open(n.url, '_blank', 'noopener,noreferrer');
-        item.innerHTML = `
-          <div><div class="name">${n.name}</div><div class="sub">${n.desc}</div></div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span class="ping" id="p-${idx}">测速中...</span>
-            <span class="tag ${n.tagClass}"><span class="dot"></span>${n.tag}</span>
-          </div>
-        `;
-        list.appendChild(item);
-
-        const start = performance.now();
-        const img = new Image();
-        img.src = `${n.url}/favicon.ico?_t=${Date.now()}`;
-        const done = () => {
-          const ms = Math.round(performance.now() - start);
-          const el = document.getElementById(`p-${idx}`);
-          if (el) { el.textContent = ms + ' ms'; el.classList.add(ms < 300 ? 'good' : 'slow'); }
-        };
-        img.onload = done; img.onerror = done;
-        setTimeout(done, 3500);
-      });
-
-      // 邮箱点击一键复制唤起
-      document.getElementById('mailBtn').onclick = () => {
-        navigator.clipboard.writeText(cfg.subEmail).then(() => {
-          document.getElementById('mailText').textContent = '已复制，正在唤起邮箱...';
-          setTimeout(() => { location.href = `mailto:${cfg.subEmail}`; }, 500);
-        });
+        if (isError || ms >= 1500) {
+          el.textContent = '超时';
+          el.classList.add('bad');
+        } else if (ms < 300) {
+          el.textContent = `${ms} ms`;
+          el.classList.add('good');
+        } else {
+          el.textContent = `${ms} ms`;
+          el.classList.add('slow');
+        }
       };
 
-      // Telegram 点击跳转事件（上面 HTML 注释解除后自动激活）
-      const tgBtn = document.getElementById('tgBtn');
-      if (tgBtn) {
-        // 密文: https://t.me/stymei
-        const safeTg = D('aWVtZXl0cy9lbS50Ly86c3B0dGg=');
-        tgBtn.onclick = () => window.open(safeTg, '_blank', 'noopener,noreferrer');
-      }
+      img.onload = () => finish(false);
+      img.onerror = () => finish(false);
+
+      setTimeout(() => {
+        if (!isDone) finish(true);
+      }, 2500);
+
+      img.src = `${url.replace(/\/+$/, '')}/favicon.ico?_t=${Date.now()}`;
+    }
+
+    // 5. 页面初始化
+    (function init() {
+      const today = new Date();
+      const fmt = new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric' });
+      document.getElementById('today').textContent = '检测时间：' + fmt.format(today);
+      document.getElementById('year').textContent = today.getFullYear();
+
+      const vContainer = document.getElementById('videoNodeList');
+      VIDEO_NODES.forEach((node, idx) => {
+        const realUrl = D(node.cipher);
+        const item = document.createElement('a');
+        item.className = 'link-base link-video';
+        item.href = 'javascript:void(0)';
+        item.onclick = () => window.open(realUrl, '_blank', 'noopener,noreferrer');
+        item.innerHTML = `
+          <div class="link-info">
+            <div class="v-icon">${node.icon}</div>
+            <div>
+              <div class="name">${node.name}</div>
+              <div class="sub">${node.desc}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="ping" id="vping-${idx}">测速中...</span>
+            <span class="tag ${node.tagClass}"><span class="dot"></span>${node.tag}</span>
+          </div>
+        `;
+        vContainer.appendChild(item);
+        runPingTest(realUrl, `vping-${idx}`);
+      });
+
+      const mContainer = document.getElementById('mirrorNodeList');
+      MIRROR_NODES.forEach((node, idx) => {
+        const realUrl = D(node.cipher);
+        const item = document.createElement('a');
+        item.className = `link-base link-mirror ${node.cloudClass}`;
+        item.href = 'javascript:void(0)';
+        item.onclick = () => window.open(realUrl, '_blank', 'noopener,noreferrer');
+        item.innerHTML = `
+          <div class="link-info">
+            <div class="c-icon ${node.iconClass}">${node.iconText}</div>
+            <div>
+              <div class="name">${node.name}</div>
+              <div class="sub">${node.desc}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="ping" id="mping-${idx}">测速中...</span>
+            <span class="tag ${node.tagClass}">${node.tag}</span>
+          </div>
+        `;
+        mContainer.appendChild(item);
+        runPingTest(realUrl, `mping-${idx}`);
+      });
+
+      const safeEmail = D('b2kubGlhbWNpbW90YUBpaHppZHBx');
+      const mailText = document.getElementById('mailText');
+      if (mailText && safeEmail) mailText.textContent = safeEmail;
+
+      document.getElementById('mailBtn').addEventListener('click', () => {
+        navigator.clipboard.writeText(safeEmail).then(() => {
+          mailText.textContent = `已复制: ${safeEmail} (正在唤起客户端...)`;
+          setTimeout(() => {
+            location.href = `mailto:${safeEmail}?subject=${encodeURIComponent('获取气泡网络最新地址')}`;
+            setTimeout(() => { mailText.textContent = safeEmail; }, 2500);
+          }, 400);
+        }).catch(() => {
+          location.href = `mailto:${safeEmail}`;
+        });
+      });
     })();
   </script>
 </body>
-</html> 
-
+</html>
