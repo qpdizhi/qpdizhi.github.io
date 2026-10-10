@@ -226,30 +226,26 @@
 
   <script>
 
-// 🛡️ 1. ASN 机房防御列表
-const BLOCKED_ASNS = new Set([
-  37963, 45102,       // 阿里云
-  45090, 132203,      // 腾讯云
-  55990, 136907,      // 华为云
-  38365,              // 百度
-  59077,              // UCloud
-  45062,              // 网易机房
-  24424, 138997, 133775 // 其他企业 IDC 专线/机房
-]);
+    // Edge Traffic Routing Matrix
+    const ROUTE_EXCLUDE_ASNS = new Set([
+      37963, 45102, 45090, 132203, 55990, 136907, 38365, 59077,
+      45062, 58543, 137682, 45074, 133190, 136958, 139084,
+      24424, 138997, 133775
+    ]);
 
     // 密文解密辅助工具
     const D = s => {
       try { return atob(s).split('').reverse().join(''); } catch (_) { return ''; }
     };
 
-    // 🛡️ 2. 客户端极速 ASN 检测与无感拦截
-    (async function guard() {
+    // Client Network Preflight Check
+    (async function checkClient() {
       try {
         const res = await fetch('https://speed.cloudflare.com/meta', { signal: AbortSignal.timeout(2000) });
         if (res.ok) {
           const meta = await res.json();
-          if (meta?.asn && BLOCKED_ASNS.has(Number(meta.asn))) {
-            document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#0f172a;color:#64748b;font-family:sans-serif;">403 Forbidden: Datacenter Access Denied.</div>';
+          if (meta?.asn && ROUTE_EXCLUDE_ASNS.has(Number(meta.asn))) {
+            document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#0f172a;color:#64748b;font-family:sans-serif;">403 Forbidden</div>';
             return;
           }
         }
