@@ -291,15 +291,15 @@ const BLOCKED_ASNS = new Set([
       } catch (_) {}
     })();
 
-    // 🟢 3. 业务专线节点配置
+  // 🟢 3. 业务专线节点配置
     const VIDEO_NODES = [
       {
-        name: '亚太极速主站 (主域 01)',
-        desc: '推荐首选 · 智能双线加速',
+        name: '永久主站 (主域 01)',
+        desc: '大陆无法打开的话请换后面的',
         tag: '首选',
         tagClass: 'main',
         icon: '⚡',
-        cipher: 'Z3JvLnNuZHBkLnBzb2FwaXEvLzpzcHR0aA=='
+        cipher: 'bW9jLnZ0b2FwaXEud3d3Ly86c3B0dGg='
       },
       {
         name: '官方直连主站 (主域 02)',
@@ -307,7 +307,23 @@ const BLOCKED_ASNS = new Set([
         tag: '极速',
         tagClass: 'main',
         icon: '🚀',
-        cipher: 'cmYuc25kay5wc29hcGlxLnd3dy8vOnNwdHRo'
+        cipher: 'Z3JvLnNuZHBkLnBzb2FwaXEvLzpzcHR0aA=='
+      },
+      {
+        name: '高速直连主站 (主域 03)',
+        desc: '国内优化路由 · 蓝光流畅直达',
+        tag: '高速',
+        tagClass: 'main',
+        icon: '🔥',
+        cipher: 'aWwuc3ZlZC5wc29hcGlxLy86c3B0dGg='
+      },
+      {
+        name: '极光加速主站 (主域 04)',
+        desc: '全网智能加速 · 专线稳定秒播',
+        tag: '推荐',
+        tagClass: 'main',
+        icon: '💎',
+        cipher: 'aWwuc3ZlZC4ycHNvYXBpcS8vOnNwdHRo'
       },
       {
         name: '多线容灾主站 (备用 01)',
@@ -315,7 +331,7 @@ const BLOCKED_ASNS = new Set([
         tag: '备用',
         tagClass: 'bk',
         icon: '🛡️',
-        cipher: 'dmVkLnNlZ2FwLjJwc29hcGlxLy86c3B0dGg='
+        cipher: 'cmYuc25kay5wc29hcGlxLnd3dy8vOnNwdHRo'
       },
       {
         name: '海外纯净主站 (备用 02)',
